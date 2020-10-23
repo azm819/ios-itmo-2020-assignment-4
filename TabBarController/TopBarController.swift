@@ -30,6 +30,7 @@ class TopBarController: UIViewController {
         updateTopBar()
 
         scrollView.bounces = false
+        scrollView.showsHorizontalScrollIndicator = false
         scrollView.delegate = self
     }
 
