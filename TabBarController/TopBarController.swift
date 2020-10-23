@@ -4,7 +4,7 @@ fileprivate let TOP_BAR_INSET: CGFloat = 20
 
 protocol TopBarControllerDelegate: class {
     func wasSelectController(byIndex: Int)
-    func getSelectedControllerIndex() -> Int
+    func selectedControllerIndex() -> Int
 }
 
 class TopBarController: UIViewController {
@@ -90,10 +90,10 @@ extension TopBarController: UIScrollViewDelegate {
     }
 
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-        updateSelectedView(byIndex: delegate.getSelectedControllerIndex(), animated: true)
+        updateSelectedView(byIndex: delegate.selectedControllerIndex(), animated: true)
     }
 
     func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView) {
-        updateSelectedView(byIndex: delegate.getSelectedControllerIndex(), animated: true)
+        updateSelectedView(byIndex: delegate.selectedControllerIndex(), animated: true)
     }
 }

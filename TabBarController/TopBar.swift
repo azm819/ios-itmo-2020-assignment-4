@@ -85,7 +85,7 @@ extension TopBar: TopBarControllerDelegate {
         }
     }
 
-    func getSelectedControllerIndex() -> Int {
+    func selectedControllerIndex() -> Int {
         return lastSelectedButton?.tag ?? .zero
     }
 }
