@@ -7,26 +7,30 @@
 
 import UIKit
 
-fileprivate let TOP_BAR_CORNER_RADIUS: CGFloat = 20
+fileprivate let TOP_BAR_CORNER_RADIUS: CGFloat = 30
 fileprivate let TOP_BAR_ALPHA: CGFloat = 0.5
 
-protocol TopBarDelegate {
+protocol TopBarDelegate: class {
     func changeScreen(to index: Int)
 }
 
 class TopBar: UIView {
-    var delegate: TopBarDelegate?
+    weak var delegate: TopBarDelegate?
+    private var shouldNotifyDelegate = true
 
     private var buttons = [TopBarButton]()
     private var lastSelectedButton: TopBarButton? {
-        willSet {
-            lastSelectedButton?.isSelected.toggle()
-        }
         didSet {
+            guard oldValue != lastSelectedButton else {
+                shouldNotifyDelegate = true
+                return
+            }
+            oldValue?.isSelected.toggle()
             lastSelectedButton?.isSelected.toggle()
-            if let lastSelectedButton = lastSelectedButton {
+            if shouldNotifyDelegate, let lastSelectedButton = lastSelectedButton {
                 delegate?.changeScreen(to: lastSelectedButton.tag)
             }
+            shouldNotifyDelegate = true
         }
     }
 
@@ -56,7 +60,6 @@ class TopBar: UIView {
                                         y: .zero,
                                         width: buttonSideSize,
                                         height: buttonSideSize)
-            topBarButton.setupInsets()
             addSubview(topBarButton)
             topBarButton.tag = index
             topBarButton.addTarget(self, action: #selector(touchUpButton), for: .touchUpInside)
@@ -68,5 +71,21 @@ class TopBar: UIView {
 
     @objc func touchUpButton(button: TopBarButton) {
         lastSelectedButton = button
+    }
+}
+
+extension TopBar: TopBarControllerDelegate {
+    func wasSelectController(byIndex index: Int) {
+        for button in buttons {
+            if button.tag == index {
+                shouldNotifyDelegate = false
+                lastSelectedButton = button
+                return
+            }
+        }
+    }
+
+    func getSelectedControllerIndex() -> Int {
+        return lastSelectedButton?.tag ?? .zero
     }
 }

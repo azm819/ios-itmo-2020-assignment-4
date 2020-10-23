@@ -2,10 +2,18 @@ import UIKit
 
 fileprivate let TOP_BAR_INSET: CGFloat = 20
 
+protocol TopBarControllerDelegate: class {
+    func wasSelectController(byIndex: Int)
+    func getSelectedControllerIndex() -> Int
+}
+
 class TopBarController: UIViewController {
     let topBar: TopBar
     let viewControllers: [UIViewController]
     let scrollView: UIScrollView
+
+    private let delegate: TopBarControllerDelegate
+    private var didScrollByController = false
 
     convenience init(_ viewControllers: UIViewController...) {
         self.init(viewControllers: viewControllers)
@@ -14,30 +22,35 @@ class TopBarController: UIViewController {
     init(viewControllers: [UIViewController]) {
         self.viewControllers = viewControllers
         topBar = TopBar()
+        delegate = topBar
         scrollView = UIScrollView()
         super.init(nibName: nil, bundle: nil)
         view.addSubview(scrollView)
         view.addSubview(topBar)
         updateTopBar()
+
+        scrollView.bounces = false
+        scrollView.delegate = self
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        scrollView.frame = CGRect(origin: .zero, size: CGSize(width: view.frame.width * CGFloat(viewControllers.count), height: view.frame.height))
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        updateTopBar()
+        updateScrollView()
+    }
+
+    private func updateScrollView() {
+        scrollView.frame = view.frame
+        scrollView.contentSize = CGSize(width: view.frame.width * CGFloat(viewControllers.count), height: view.frame.height)
         for (index, viewController) in viewControllers.enumerated() {
             scrollView.addSubview(viewController.view)
             viewController.view.frame = view.frame
             viewController.view.frame.origin.x = CGFloat(index) * view.frame.width
         }
-    }
-
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        updateTopBar()
     }
 
     private func updateTopBar() {
@@ -54,11 +67,33 @@ class TopBarController: UIViewController {
         topBar.delegate = self
     }
 
-    // TODO: add orientation change receiver
+    private func updateSelectedView(byIndex index: Int, animated: Bool) {
+        scrollView.setContentOffset(CGPoint(x: CGFloat(index) * view.frame.width, y: .zero), animated: animated)
+    }
 }
 
 extension TopBarController: TopBarDelegate {
     func changeScreen(to index: Int) {
-        scrollView.contentOffset.x = CGFloat(index) * view.frame.width
+        didScrollByController = true
+        updateSelectedView(byIndex: index, animated: false)
+    }
+}
+
+extension TopBarController: UIScrollViewDelegate {
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        guard !didScrollByController else {
+            didScrollByController = false
+            return
+        }
+        let controllerIndex: Int = Int(scrollView.contentOffset.x / view.frame.width + 0.5)
+        delegate.wasSelectController(byIndex: controllerIndex)
+    }
+
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        updateSelectedView(byIndex: delegate.getSelectedControllerIndex(), animated: true)
+    }
+
+    func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView) {
+        updateSelectedView(byIndex: delegate.getSelectedControllerIndex(), animated: true)
     }
 }

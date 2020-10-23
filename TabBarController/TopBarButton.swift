@@ -17,26 +17,48 @@ class TopBarButton: UIButton {
     override var isSelected: Bool {
         didSet {
             UIView.animate(withDuration: ANIMATION_DURATION, animations: {
-                self.circleView.alpha = self.isSelected ? CIRCLE_VIEW_ALPHA : .zero
+                let changeCircleView: (CGFloat, CGPoint, CGSize, CGFloat) -> Void = {
+                    (alpha: CGFloat,
+                     origin: CGPoint,
+                     size: CGSize,
+                     radius: CGFloat) -> Void in
+                    self.circleView.alpha = alpha
+                    self.circleView.frame.origin = origin
+                    self.circleView.frame.size = size
+                    self.circleView.layer.cornerRadius = radius
+                }
+
+                let halfWidth = self.frame.width / 2
+                if self.isSelected {
+                    changeCircleView(CIRCLE_VIEW_ALPHA,
+                                     .zero,
+                                     self.frame.size,
+                                     halfWidth)
+                }
+                else {
+                    changeCircleView(.zero,
+                                     CGPoint(x: halfWidth, y: halfWidth),
+                                     .zero,
+                                     .zero)
+                }
             })
         }
     }
 
     override var frame: CGRect {
         didSet {
-            circleView.frame = CGRect(origin: .zero, size: frame.size)
-            circleView.layer.cornerRadius = frame.width / 2
+            circleView.center = center
+            setupInsets()
         }
     }
 
     init(image: UIImage, text: String) {
         circleView = UIView()
+        circleView.backgroundColor = .black
         super.init(frame: .zero)
         addSubview(circleView)
-        circleView.backgroundColor = .black
-        circleView.alpha = .zero
 
-        setImage(image, for: .normal)
+        setImage(image.withRenderingMode(.alwaysOriginal), for: .normal)
         setTitle(text, for: .normal)
         setTitleColor(.black, for: .normal)
     }
@@ -45,7 +67,7 @@ class TopBarButton: UIButton {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func setupInsets() {
+    private func setupInsets() {
         titleLabel?.font = titleLabel?.font.withSize(FONT_SIZE)
         guard let imageViewSize = imageView?.frame.size, let _ = titleLabel?.frame.size else {
             return
