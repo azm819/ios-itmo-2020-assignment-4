@@ -29,8 +29,6 @@ class TopBarController: UIViewController {
         view.addSubview(topBar)
         updateTopBar()
 
-        scrollView.bounces = false
-        scrollView.showsHorizontalScrollIndicator = false
         scrollView.delegate = self
     }
 
@@ -46,6 +44,8 @@ class TopBarController: UIViewController {
 
     private func updateScrollView() {
         scrollView.frame = view.frame
+        scrollView.bounces = false
+        scrollView.showsHorizontalScrollIndicator = false
         scrollView.contentSize = CGSize(width: view.frame.width * CGFloat(viewControllers.count), height: view.frame.height)
         for (index, viewController) in viewControllers.enumerated() {
             scrollView.addSubview(viewController.view)

@@ -54,12 +54,13 @@ class TopBar: UIView {
 
         let buttonSideSize = (width - TOP_BAR_CORNER_RADIUS * 2) / CGFloat(items.count)
         frame.size = CGSize(width: width, height: buttonSideSize)
+        frame = frame.integral
         for (index, item) in items.enumerated() {
             let topBarButton = TopBarButton(image: item.icon, text: item.title)
             topBarButton.frame = CGRect(x: CGFloat(index) * buttonSideSize + TOP_BAR_CORNER_RADIUS,
                                         y: .zero,
                                         width: buttonSideSize,
-                                        height: buttonSideSize)
+                                        height: buttonSideSize).integral
             addSubview(topBarButton)
             topBarButton.tag = index
             topBarButton.addTarget(self, action: #selector(touchUpButton), for: .touchUpInside)
